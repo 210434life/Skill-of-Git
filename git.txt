@@ -1,0 +1,127 @@
+Git是目前世界上最先进的分布式版本控制系统
+历史:
+	Linus在1991年创建开源的Linux, 在2002年以前,世界各地志愿者通过diff的方式把源代码文件发给Linus。当时有CVS、SVN免费的版本控制系统，但Linus零为这些集中式的版本控制系统速度慢。到了2002年，Linus选择了一个商业的版本控制系统BitKeeper， BitKeeper的东家公司BitMover处于人道主义精神，授权Linux社区免费使用。2005年开发Samba的Andrew试图破解BitKeeper的协议，免费使用权被收回。Linus花了两周时间自己用c写出了一个分布式版本控制系统， 这就是Git。到2008年，GitHub网站上线。
+Git的两大特点：
+	版本控制
+	分布式：同一个Git仓库，可以分布到不同的机器上。首先找一台电脑充当服务器，每天24小时开机，其他每个人都从这个“服务器”仓库中克隆一份到自己的电脑上，并且各自把自己的提交推送到服务器仓库里，也从服务器仓库拉取别人的提交。可以自己搭建这台服务器，也可以使用GitHub网站。
+安装与配置
+	安装： sudo apt-get install git
+	验证： git
+	创建版本库：建一个目录，存放代码，git可以管理一个目录下的代码
+		mkdir git_test
+	进去该目录
+		cd git_test
+	初始化， git init, 之后会在该目录下创建出一个目录.git, 之后git会根据该目录里的配置文件对代码库进行管理
+使用：
+	（1）创建版本
+			git add 文件
+			git commit -m "版本描述信息，不同版本可以一样"
+	（2）查看版本
+			git log
+	创建版本的时候， git创建了一个记录， 每个版本之间的记录成为一条时间线，新的版本只记录了基于上一个版本所做的修改
+	HEAD指向当前最新版本的记录柄
+	以前版本：  HEAD^   HEAD^^ 前前一个版本
+				HEAD~1  HEAD~100 当前前100的版本
+	（3）版本回退：
+		git reset --hard HEAD^
+	（4）回到最新的版本：
+		git reset --hard 版本编号
+	（5）查看操作记录
+		git relog
+		git log --pretty=oneline
+		git log --graph --pretty=oneline
+工作区和暂存区
+	工作区：git_test
+	暂存区：git_test/.git
+	git add的时候是添加修改到暂存区
+	git commit 创建版本记录， 即HEAD指针指向该版本
+	可以先多次git add后一次性提交，记录版本
+	git status 修改的状态
+	git add 文件1 文件2 [目录]
+管理修改
+	只会提交暂存区的修改
+撤销修改
+	在工作区,还未加入到暂存区时:
+		git checkout -- 文件名
+	在暂存区,还未提交时:
+		git reset HEAD 文件名    把暂存区的撤销, 返回到工作区
+		git checkout -- 文件名    撤销修改,撤出工作区
+	已经提交了版本:
+		git reset --hard 版本编号\HEAD^|HEAD~1
+比较文件不同:
+	对比工作区和某个版本中文件的不同:
+		git diff HEAD -- 文件名
+		--- HEAD版本    +++ 工作区
+		会显示工作区和版本区的文件信息, + 代表工作区比HEAD版本多了的内容, - 代表工作区波HEAD版本少了的内容
+	对比两个版本之间文件的不同:
+		git diff HEAD HEAD^ --  文件名
+		---   HEAD   +++   HEAD^
+		- 代表HEAD比HEAD^多的内容
+		+ 代表HEAD比HEAD^少的内容
+删除文件
+	rm 文件名     工作区
+	git rm 文件名  暂存区
+	git commit -m "信息" 版本
+	未提交的, 删了就是删了
+
+
+分支管理
+	概念: 分支就像树枝一样, 在一个枝中,延伸一个新的枝干, 两个枝干互不干扰, 在某个时候合并了
+	场景应用: 在开发一个新功能时, 没有完成提交, 不完整的代码导致别人不能干活,提交有会存在丢失每天进度的巨大风险. 有了分支, 可以自己创建一个自己的分支, 别人看不到, 可以继续在原来的分支干活, 又可以在自己的分支上干活, 直到开发完毕, 可以合并到原来的分支上.
+	创建与合并分支: 在git里, 主分支即master, HEAD严格来说不是指向提交, 二十指向master, master才是指向提交, 所以HEAD指向的就是当前分支
+		(1) 一开始的时候, master分支是一条线, git用master指向最新的提交, 再用HEAD指向master, 就能确定当前分支, 以及当前分支的提交点. 每次提交, master分支都会向前移动一步
+		(2) 当创建新的分支时, git会新建一个指针, 指向master相同的提交, 再把HEAD指向该分支
+		(3) 此时工作区的修改和提交时针对新的分支, 提交一次后, 新的指针向前移动一步, master不动
+		(4) 合并就相当于把master指向新的分支
+		(5) 合并之后可以删除新的分支, 就剩下master分支
+	查看分支及当前所在分支:
+		git branch
+	创建一个新的分支并切换到其上工作:
+		git checkout -b 分支名
+	切换分支:
+		git checkout master(分支名)
+	合并分支:
+		git merge 需要合并到当前分支上的其他分支名
+		默认合并方式, Fast-forward(快速合并), 直接把master指向dev的当前提交
+	删除分支:
+		git branch -d 需要删除的分支名
+		冲突: 如果两个分支提交后的同一个文件的内容不一样, 会产生冲突
+		查看冲突的文件
+			git status
+		解决冲突: 打开这个文件, 手动修改, 然后手动新的提交
+	分支管理策略:
+		通常, 合并分支时, git会用fast forward模式, 但是快速合并不能成功而且合并时没有冲突, 这个时候会合并之后并做一次新的提交, 当这种模式下, 删除分支, 会丢掉分支信息, 我们需要保留分支信息
+		禁用快速模式, git merge --no--ff 合并分支名
+	Bug分支
+		临时修改Bug, 先隐藏当前工作, 创建Bug分支, 修改完Bug之后,合并到原来的分支, 再恢复到工作区
+		储藏当前工作现场:
+			git stash
+		恢复工作现场:
+			git stash pop
+
+GitHub
+	注册, 登录
+	创建仓库, 仓库名, 描述, 创建READ文件, 忽略那些文件的提交(.gitignore, 可以自己编辑)
+	添加ssh
+		在头像下面setting里面的SSH选项中New一个SSH Keys匹配, 把本地生成的ssh公钥复制过去
+		在本地, 用户主目录,编辑文件.gitconfig, 修改某台机器的gt配置
+			[user]
+				email = 注册github时的邮箱
+				name = 用户名
+		ssh-keygen -t rsa -C "邮箱地址"
+		把.ssh/ia_rsa.pub内容复制到github的账户上
+		克隆项目
+			git clone ssh地址或者https地址
+		克隆出错
+			eval "$(ssh-agent -s)"
+			ssh-add
+		上传分支
+			git push origin 分支名称
+		将本地分支跟踪服务器分支:
+			git brach --set-upstream-to=origin/远程分支名 本地分支名
+			跟踪之后, 上传分支可以直接git push
+		从远程分支上拉取代码:
+			git pull origin 分支名称
+		工作中使用git:
+			项目代码 master
+			员工: 自己master, 创建分支, 跟踪, 推送等
